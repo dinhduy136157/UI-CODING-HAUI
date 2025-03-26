@@ -51,7 +51,7 @@ export default function LessonDetail() {
   };
 
   const handleStartCoding = (exerciseId) => {
-    navigate(`/coding-exercise?exerciseId=${exerciseId}&lessonId=${lessonId}`);
+    navigate(`/CodingExercise?exerciseId=${exerciseId}`);
   };
 
   if (loading) {

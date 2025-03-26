@@ -4,6 +4,7 @@ import Home from "../pages/User/Home";
 import Lesson from "../pages/User/Lesson";
 import LessonDetail from "../pages/User/LessonDetail";
 import PrivateRoute from "./PrivateRoutes"; // Import
+import CodingExercise from "../pages/User/CodingExercise";
 
 
 
@@ -17,10 +18,11 @@ const UserRoutes = () => {
           <Route path="/Home" element={<Home />} />
           <Route path="/Lesson" element={<Lesson />} />
           <Route path="/LessonDetail" element={<LessonDetail />} />
+          <Route path="/CodingExercise" element={<CodingExercise />} />
         </Route>
 
         {/* Mặc định về trang login nếu route không tồn tại */}
-        <Route path="/*" element={<Navigate to="/login" />} />
+        {/* <Route path="/*" element={<Navigate to="/login" />} /> */}
         
 
       </Routes>
