@@ -3,12 +3,54 @@ import { useSearchParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { FaPlay, FaSpinner, FaGripLinesVertical, FaExpandAlt, FaCompressAlt } from "react-icons/fa";
-import { BsCheckCircleFill, BsLightbulb, BsCodeSlash } from "react-icons/bs";
+import { BsCheckCircleFill, BsLightbulb, BsCodeSlash, BsExclamationTriangle } from "react-icons/bs";
 import { IoMdClose } from "react-icons/io";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from "../../components/User/Sidebar";
 import Header from "../../components/User/Header";
 import codingExerciseApi from "../../api/codingExerciseApi";
 import studentApi from "../../api/studentApi";
+
+const SubmitResultModal = ({ result, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+        <div className="p-6 text-center">
+          {result.success ? (
+            <>
+              <BsCheckCircleFill className="mx-auto text-5xl text-green-500 mb-4" />
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Nộp bài thành công!</h3>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 text-left">
+                <p className="font-medium">Điểm số: <span className="text-green-600">{result.score}/100</span></p>
+                <p>Thời gian: {new Date(result.submissionTime).toLocaleString()}</p>
+                {result.message && <p className="mt-2">{result.message}</p>}
+              </div>
+            </>
+          ) : (
+            <>
+              <BsExclamationTriangle className="mx-auto text-5xl text-red-500 mb-4" />
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Nộp bài thất bại</h3>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-red-600">{result.message}</p>
+              </div>
+            </>
+          )}
+
+          <button
+            onClick={onClose}
+            className={`px-6 py-2 rounded-md font-medium ${result.success
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function CodingExercise() {
   const [searchParams] = useSearchParams();
@@ -18,12 +60,14 @@ export default function CodingExercise() {
   const [language, setLanguage] = useState("python");
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [fontSize, setFontSize] = useState(14);
   const [currentTestCaseIndex, setCurrentTestCaseIndex] = useState(0);
   const [testCaseResults, setTestCaseResults] = useState([]);
   const [user, setUser] = useState(null);
+  const [submitResult, setSubmitResult] = useState(null);
 
   // Lấy thông tin user
   useEffect(() => {
@@ -33,6 +77,7 @@ export default function CodingExercise() {
         setUser(dataStudent.data);
       } catch (error) {
         console.error("Lỗi khi lấy thông tin user:", error);
+        toast.error("Lỗi khi tải thông tin người dùng");
       }
     };
 
@@ -47,10 +92,11 @@ export default function CodingExercise() {
         setExercise(res.data);
         setCode(
           res.data.initialCode ||
-            `# ${res.data.description}\n# Input mẫu: ${res.data.exampleInput}\n\n`
+          `# ${res.data.description}\n# Input mẫu: ${res.data.exampleInput}\n\n`
         );
       } catch (error) {
         console.error("Lỗi khi lấy đề bài:", error);
+        toast.error("Lỗi khi tải đề bài");
       }
     };
     fetchExercise();
@@ -58,13 +104,13 @@ export default function CodingExercise() {
 
   const handleSubmit = async () => {
     if (!user) {
-      setOutput("Lỗi: Không tìm thấy thông tin user.");
+      toast.error("Vui lòng đăng nhập để chạy code");
       return;
     }
-  
+
     setIsRunning(true);
     setOutput("Đang chạy code...");
-  
+
     try {
       const res = await codingExerciseApi.submitCode({
         studentId: user.studentID,
@@ -72,44 +118,105 @@ export default function CodingExercise() {
         code: code,
         language: language,
       });
-  
+
       console.log("API Response:", res.data);
-  
+
       if (!res.data.details || !Array.isArray(res.data.details)) {
         throw new Error("Dữ liệu test case không hợp lệ.");
       }
-  
-      // Lấy kết quả từ API response
+
       const apiTestResults = res.data.details;
-  
-      // Tạo kết quả để hiển thị
       const results = exercise.testCases.map((testCase, idx) => {
-        // Lấy kết quả từ API response (đảm bảo không vượt quá số lượng)
         const apiResult = idx < apiTestResults.length ? apiTestResults[idx] : null;
-        
         return {
           isCorrect: apiResult?.status === "✅ Pass",
           actualOutput: apiResult?.output || "",
         };
       });
-  
+
       setTestCaseResults(results);
-      setOutput(
-        `✅ ${res.data.passedTestCases}/${res.data.totalTestCases} test cases passed.`
-      );
+      setOutput(`✅ ${res.data.passedTestCases}/${res.data.totalTestCases} test cases passed.`);
+
+      if (res.data.passedTestCases === res.data.totalTestCases) {
+        toast.success("🎉 Bạn đã pass tất cả test cases! Bây giờ có thể nộp bài.");
+      }
     } catch (error) {
       console.error("Lỗi khi submit code:", error);
       if (error.response?.status === 400 && error.response.data?.error) {
         setOutput(`Lỗi biên dịch:\n${error.response.data.error}`);
+        toast.error("Lỗi biên dịch code");
       } else {
         setOutput(`Lỗi: ${error.message}`);
+        toast.error("Lỗi khi chạy code");
       }
     } finally {
       setIsRunning(false);
     }
   };
-  
-  
+
+  const handleFinalSubmit = async () => {
+    if (!user) {
+      toast.error("Vui lòng đăng nhập để nộp bài");
+      return;
+    }
+
+    const allPassed = testCaseResults.length > 0 &&
+      testCaseResults.every(result => result.isCorrect);
+
+    if (!allPassed) {
+      toast.error("Bạn cần hoàn thành tất cả test cases trước khi nộp!");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setOutput("Đang nộp bài cuối cùng...");
+
+    try {
+      const testCasesPassed = testCaseResults.filter(tc => tc.isCorrect).length;
+      const totalTestCases = testCaseResults.length;
+      const executionTime = Math.max(...testCaseResults.map(tc => tc.executionTime || 0), 0);
+      const memoryUsage = Math.max(...testCaseResults.map(tc => tc.memoryUsage || 0), 0);
+
+      // Chuyển kết quả test cases thành JSON
+      const formattedResults = testCaseResults.map(tc => ({
+        input: tc.input,
+        expected: tc.expectedOutput,
+        output: tc.actualOutput,
+        status: tc.isCorrect ? "✅ Pass" : "❌ Fail"
+      }));
+
+      const res = await codingExerciseApi.submitFinalSolution({
+        studentId: user.studentID,
+        exerciseId: exerciseId,
+        code: code,
+        language: language,
+        result: formattedResults, // ✅ Kết quả chi tiết test case
+        score: 100, // Tạm thời 100, nếu có cơ chế chấm điểm khác thì sửa lại
+        executionTime: executionTime,
+        memoryUsage: memoryUsage,
+        testCasesPassed: testCasesPassed,
+        totalTestCases: totalTestCases
+      });
+
+      setSubmitResult({
+        success: true,
+        score: 100,
+        submissionTime: new Date(),
+        message: "Nộp bài thành công"
+      });
+
+      toast.success("🎉 Bài làm đã được ghi nhận!");
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "Lỗi hệ thống";
+      setSubmitResult({
+        success: false,
+        message: errorMsg
+      });
+      toast.error(`❌ ${errorMsg}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -125,9 +232,34 @@ export default function CodingExercise() {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header />
+
+        {/* Thông báo cần pass hết test cases */}
+        {testCaseResults.length > 0 && !testCaseResults.every(result => result.isCorrect) && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div className="flex items-center">
+              <BsExclamationTriangle className="flex-shrink-0 h-5 w-5 text-yellow-400 mr-3" />
+              <div>
+                <p className="text-sm text-yellow-700">
+                  Bạn cần pass tất cả test cases trước khi có thể nộp bài cuối cùng.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <PanelGroup
           direction="horizontal"
@@ -222,13 +354,13 @@ export default function CodingExercise() {
                                   }`}
                               >
                                 {testCaseResults[idx]?.isCorrect !== undefined ? (
-                                    testCaseResults[idx].isCorrect ? (
-                                        <BsCheckCircleFill className="mr-2 text-green-500" />
-                                    ) : (
-                                        <IoMdClose className="mr-2 text-red-500" />
-                                    )
+                                  testCaseResults[idx].isCorrect ? (
+                                    <BsCheckCircleFill className="mr-2 text-green-500" />
+                                  ) : (
+                                    <IoMdClose className="mr-2 text-red-500" />
+                                  )
                                 ) : (
-                                    <BsCheckCircleFill className="mr-2 text-gray-300" />
+                                  <BsCheckCircleFill className="mr-2 text-gray-300" />
                                 )}
                                 Test case {idx + 1}
                               </button>
@@ -239,7 +371,8 @@ export default function CodingExercise() {
                           {exercise.testCases?.filter(tc => !tc.isHidden).map((testCase, idx) => (
                             <div
                               key={idx}
-                              className={`mb-4 last:mb-0 ${currentTestCaseIndex === idx ? 'block' : 'hidden'}`}
+                              className={`mb-4 last:mb-0 ${currentTestCaseIndex === idx ? 'block' : 'hidden'
+                                }`}
                             >
                               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-3">
                                 <div>
@@ -257,10 +390,12 @@ export default function CodingExercise() {
                                 {testCaseResults[idx] && (
                                   <div>
                                     <p className="text-sm text-gray-500 mb-1 font-medium">Your output:</p>
-                                    <pre className={`p-3 rounded text-sm font-mono overflow-x-auto ${testCaseResults[idx].isCorrect
-                                        ? "bg-green-50 text-green-800 border border-green-200"
-                                        : "bg-red-50 text-red-800 border border-red-200"
-                                      }`}>
+                                    <pre
+                                      className={`p-3 rounded text-sm font-mono overflow-x-auto ${testCaseResults[idx].isCorrect
+                                          ? "bg-green-50 text-green-800 border border-green-200"
+                                          : "bg-red-50 text-red-800 border border-red-200"
+                                        }`}
+                                    >
                                       {testCaseResults[idx].actualOutput}
                                     </pre>
                                   </div>
@@ -341,8 +476,8 @@ export default function CodingExercise() {
                   )}
                   <button
                     onClick={handleSubmit}
-                    disabled={isRunning}
-                    className={`px-4 py-1.5 rounded-md flex items-center gap-2 text-sm ${isRunning
+                    disabled={isRunning || isSubmitting}
+                    className={`px-4 py-1.5 rounded-md flex items-center gap-2 text-sm ${isRunning || isSubmitting
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-green-600 hover:bg-green-700"
                       } text-white shadow-sm transition-colors`}
@@ -358,6 +493,33 @@ export default function CodingExercise() {
                         Chạy code
                       </>
                     )}
+                  </button>
+                  <button
+                    onClick={handleFinalSubmit}
+                    disabled={
+                      isSubmitting ||
+                      isRunning ||
+                      !testCaseResults.length ||
+                      !testCaseResults.every(result => result.isCorrect)
+                    }
+                    className={`px-4 py-1.5 rounded-md flex items-center gap-2 text-sm ${isSubmitting
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : testCaseResults.every(result => result.isCorrect)
+                          ? "bg-blue-600 hover:bg-blue-700"
+                          : "bg-gray-400 cursor-not-allowed"
+                      } text-white shadow-sm transition-colors`}
+                    title={
+                      testCaseResults.every(result => result.isCorrect)
+                        ? "Nộp bài cuối cùng"
+                        : "Bạn cần pass tất cả test cases trước khi nộp"
+                    }
+                  >
+                    {isSubmitting ? (
+                      <FaSpinner className="animate-spin" />
+                    ) : (
+                      <BsCheckCircleFill />
+                    )}
+                    Nộp bài
                   </button>
                 </div>
               </div>
@@ -410,6 +572,14 @@ export default function CodingExercise() {
           </Panel>
         </PanelGroup>
       </main>
+
+      {/* Modal hiển thị kết quả nộp bài */}
+      {submitResult && (
+        <SubmitResultModal
+          result={submitResult}
+          onClose={() => setSubmitResult(null)}
+        />
+      )}
     </div>
   );
 }

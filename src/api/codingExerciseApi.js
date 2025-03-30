@@ -23,6 +23,22 @@ const codingExerciseApi = {
       totalTestCases: 0
       // Các trường khác theo API của bạn
     });
+  },
+  submitFinalSolution: (data) => {
+    return axiosClient.post(`/Submission/submissions`, {
+      studentID: data.studentId,
+      exerciseID: data.exerciseId,
+      code: data.code,
+      programmingLanguage: data.language,
+      submittedAt: new Date().toISOString(), // ✅ Lấy thời gian hiện tại
+      status: "Accepted",
+      result: JSON.stringify(data.result), // ✅ Chuyển mảng kết quả thành JSON string
+      score: data.score,
+      executionTime: data.executionTime,
+      memoryUsage: data.memoryUsage,
+      testCasesPassed: data.testCasesPassed,
+      totalTestCases: data.totalTestCases
+    });
   }
 };
 
