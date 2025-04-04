@@ -1,9 +1,11 @@
 {
-    "compilerOptions": {
-      "baseUrl": "src",
-      "paths": {
-        "~/*": ["./*"]
-      }
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@admin/*": ["features/admin/*"],
+      "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"]
     }
-  }
-  
+  },
+  "exclude": ["node_modules"]
+}

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/User/auth/Login";
 import Home from "../pages/User/Home";
 import Lesson from "../pages/User/Lesson";
@@ -10,23 +10,18 @@ import CodingExercise from "../pages/User/CodingExercise";
 
 const UserRoutes = () => {
   return (
-    <Router>
-      <Routes>
-        <Route path="/Login" element={<Login />} />
-        {/* Bảo vệ các route cần đăng nhập */}
-        <Route element={<PrivateRoute />}>
-          <Route path="/Home" element={<Home />} />
-          <Route path="/Lesson" element={<Lesson />} />
-          <Route path="/LessonDetail" element={<LessonDetail />} />
-          <Route path="/CodingExercise" element={<CodingExercise />} />
-        </Route>
+    <Routes>
+      <Route path="/Login" element={<Login />} />
+      {/* Bảo vệ các route cần đăng nhập */}
+      <Route element={<PrivateRoute />}>
+        <Route path="/Home" element={<Home />} />
+        <Route path="/Lesson" element={<Lesson />} />
+        <Route path="/LessonDetail" element={<LessonDetail />} />
+        <Route path="/CodingExercise" element={<CodingExercise />} />
+      </Route>
 
-        {/* Mặc định về trang login nếu route không tồn tại */}
-        {/* <Route path="/*" element={<Navigate to="/login" />} /> */}
-        
-
-      </Routes>
-    </Router>
+      <Route path="/*" element={<Navigate to="/login" />} />
+    </Routes>
   );
 };
 

@@ -21,7 +21,7 @@ export default function Home() {
     const fetchUserData = async () => {
       try {
         const response = await studentApi.getDataStudent();
-        setUser(response.data); // Giả sử API trả về { name: "Đinh Văn Duy" }
+        setUser(response.data); 
       } catch (error) {
         console.error("Lỗi khi lấy thông tin user:", error);
       }
@@ -34,7 +34,7 @@ export default function Home() {
     const fetchClasses = async () => {
       try {
         const response = await studentApi.getDataStudentFollowClass();
-        setClasses(response.data); // Giả sử API trả về danh sách lớp học [{ classID, className, subjectName }]
+        setClasses(response.data); 
       } catch (error) {
         console.error("Lỗi khi lấy danh sách lớp học:", error);
       }
