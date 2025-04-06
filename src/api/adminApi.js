@@ -11,6 +11,12 @@ const adminApi = {
     updateExercise: (id, data) => axiosClient.put(`/CodingExercise/${id}`, data),
     deleteExercise: (id) => axiosClient.delete(`/CodingExercise/${id}`),
 
+    // TestCases
+    getTestCaseByExercise: (exerciseId) => axiosClient.get(`/TestCase/GetTestCaseByExercise/${exerciseId}`),
+    createTestCase: (data) => axiosClient.post('/TestCase', data),
+    updateTestCase: (id, data) => axiosClient.put(`/TestCase/${id}`, data),
+    deleteTestCase: (id) => axiosClient.delete(`/TestCase/${id}`),
+
     // Submissions
     getSubmissions: (exerciseId) => axiosClient.get(`/CodingExercise/${exerciseId}/submissions`),
     updateSubmission: (submissionId, data) => axiosClient.patch(`/submission/${submissionId}`, data),

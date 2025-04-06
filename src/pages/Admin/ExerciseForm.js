@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../../api/adminApi';
+import adminApi from '../../api/adminApi';
 
 export default function ExerciseForm() {
-  const { id } = useParams();
+  const { id, lessonId } = useParams();
   const isEditMode = !!id;
   const navigate = useNavigate();
   
@@ -12,6 +12,7 @@ export default function ExerciseForm() {
     description: '',
     exampleInput: '',
     exampleOutput: '',
+    lessonId: lessonId,
     testCases: [{ inputData: '', expectedOutput: '', isHidden: true }]
   });
 
@@ -19,13 +20,14 @@ export default function ExerciseForm() {
     e.preventDefault();
     try {
       if (isEditMode) {
-        await api.put(`/exercises/${id}`, formData);
+        await adminApi.updateExercise(id, formData);
       } else {
-        await api.post('/exercises', formData);
+        await adminApi.createExercise(formData);
       }
-      navigate('/admin/exercises');
+      navigate(`/admin/lessons/${lessonId}/exercises`);
     } catch (error) {
       console.error('Error saving exercise:', error);
+      alert('Có lỗi xảy ra khi lưu bài tập: ' + (error.response?.data?.message || error.message));
     }
   };
 
