@@ -5,14 +5,16 @@ import Lesson from "../pages/User/Lesson";
 import LessonDetail from "../pages/User/LessonDetail";
 import PrivateRoute from "./PrivateRoutes"; // Import
 import CodingExercise from "../pages/User/CodingExercise";
+import ScoreOverview from "../pages/User/ScoreOverview";
+import ScoreDetail from "../pages/User/ScoreDetail";
+
 
 
 
 const UserRoutes = () => {
   return (
     <Routes>
-      <Route path="/Login" element={<Login />} />
-      {/* Bảo vệ các route cần đăng nhập */}
+      {/* <Route path="/Login" element={<Login />} />
       <Route element={<PrivateRoute />}>
         <Route path="/Home" element={<Home />} />
         <Route path="/Lesson" element={<Lesson />} />
@@ -20,7 +22,16 @@ const UserRoutes = () => {
         <Route path="/CodingExercise" element={<CodingExercise />} />
       </Route>
 
-      <Route path="/*" element={<Navigate to="/login" />} />
+      <Route path="/*" element={<Navigate to="/login" />} /> */}
+      <Route path="/Login" element={<Login />} />
+      <Route path="/Home" element={<Home />} />
+      <Route path="/Lesson" element={<Lesson />} />
+      <Route path="/LessonDetail" element={<LessonDetail />} />
+      <Route path="/CodingExercise" element={<CodingExercise />} />
+      <Route path="/ScoreOverview" element={<ScoreOverview />} />
+      <Route path="/ScoreDetail/:classId" element={<ScoreDetail />} />
+
+
     </Routes>
   );
 };

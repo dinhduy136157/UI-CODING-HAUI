@@ -84,9 +84,6 @@ export default function Exercises() {
                   Mô tả
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <FaListAlt className="inline mr-1" /> Test Cases
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày tạo
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -102,9 +99,6 @@ export default function Exercises() {
                   </td>
                   <td className="px-6 py-4 text-gray-600 max-w-xs truncate">
                     {exercise.description}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {exercise.testCases ? exercise.testCases.length : 0}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                     {new Date(exercise.createdAt).toLocaleDateString()}

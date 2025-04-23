@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL của API
-const API_URL = "https://localhost:7228/api";
+const API_URL = `${process.env.REACT_APP_API_BASE_URL}/api`;
 
 // Tạo instance Axios với cấu hình mặc định
 const axiosClient = axios.create({

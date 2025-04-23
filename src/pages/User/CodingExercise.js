@@ -4,13 +4,14 @@ import Editor from "@monaco-editor/react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { FaPlay, FaSpinner, FaGripLinesVertical, FaExpandAlt, FaCompressAlt } from "react-icons/fa";
 import { BsCheckCircleFill, BsLightbulb, BsCodeSlash, BsExclamationTriangle } from "react-icons/bs";
-import { IoMdClose } from "react-icons/io";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from "../../components/User/Sidebar";
 import Header from "../../components/User/Header";
 import codingExerciseApi from "../../api/codingExerciseApi";
 import studentApi from "../../api/studentApi";
+import { IoMdClose, IoMdRefresh } from "react-icons/io";
+
 
 const SubmitResultModal = ({ result, onClose }) => {
   return (
@@ -68,6 +69,7 @@ export default function CodingExercise() {
   const [testCaseResults, setTestCaseResults] = useState([]);
   const [user, setUser] = useState(null);
   const [submitResult, setSubmitResult] = useState(null);
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
 
   // Lấy thông tin user
   useEffect(() => {
@@ -90,18 +92,45 @@ export default function CodingExercise() {
       try {
         const res = await codingExerciseApi.getCodingExerciseDetail(exerciseId);
         setExercise(res.data);
-        setCode(
-          res.data.initialCode ||
-          `# ${res.data.description}\n# Input mẫu: ${res.data.exampleInput}\n\n`
-        );
+        
+        // Lấy template mặc định cho ngôn ngữ ban đầu (python)
+        setIsLoadingTemplate(true);
+        const template = await fetchCodeTemplate(language);
+        setCode(template);
+        setIsLoadingTemplate(false);
       } catch (error) {
         console.error("Lỗi khi lấy đề bài:", error);
         toast.error("Lỗi khi tải đề bài");
       }
     };
-    fetchExercise();
+    
+    if (exerciseId) {
+      fetchExercise();
+    }
   }, [exerciseId]);
 
+  const fetchCodeTemplate = async (lang) => {
+    try {
+      const res = await codingExerciseApi.getCodeTemplate(exerciseId, lang);
+      return res.data.functionTemplateContent || 
+        `// Không tìm thấy template cho ${lang}\n` +
+        `// Hãy viết code ${lang} ở đây\n`;
+    } catch (error) {
+      console.error(`Lỗi khi lấy template cho ${lang}:`, error);
+      // Fallback đơn giản nếu API fail
+      return `// Lỗi khi tải template\n` +
+             `// Hãy viết code ${lang} ở đây\n`;
+    }
+  };
+  const handleLanguageChange = async (newLanguage) => {
+    setLanguage(newLanguage);
+    setIsLoadingTemplate(true);
+    
+    const template = await fetchCodeTemplate(newLanguage);
+    setCode(template);
+    
+    setIsLoadingTemplate(false);
+  };
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Vui lòng đăng nhập để chạy code");
@@ -434,16 +463,15 @@ export default function CodingExercise() {
               {/* Thanh công cụ */}
               <div className="bg-white border-b p-3 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    className="text-sm py-1 px-3 border rounded bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="python">Python</option>
-                    <option value="csharp">C#</option>
-                    <option value="javascript">JavaScript</option>
-                    <option value="java">Java</option>
-                  </select>
+                <select
+                  value={language}
+                  onChange={(e) => handleLanguageChange(e.target.value)}
+                  disabled={isLoadingTemplate}
+                  className="text-sm py-1 px-3 border rounded bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                >
+                  <option value="python">Python</option>
+                  <option value="java">Java</option>
+                </select>
 
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <button
@@ -527,21 +555,22 @@ export default function CodingExercise() {
               {/* Editor và Output với khả năng resize */}
               <PanelGroup direction="vertical" className="flex-1">
                 <Panel defaultSize={70} minSize={30} className="relative">
-                  <Editor
-                    height="100%"
-                    language={language}
-                    theme="vs-dark"
-                    value={code}
-                    onChange={setCode}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: fontSize,
-                      scrollBeyondLastLine: false,
-                      padding: { top: 15 },
-                      wordWrap: "on",
-                      automaticLayout: true,
-                    }}
-                  />
+                <Editor
+                  height="100%"
+                  language={language}
+                  theme="vs-dark"
+                  value={isLoadingTemplate ? "// Đang tải template..." : code}
+                  onChange={setCode}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: fontSize,
+                    scrollBeyondLastLine: false,
+                    padding: { top: 15 },
+                    wordWrap: "on",
+                    automaticLayout: true,
+                    readOnly: isLoadingTemplate
+                  }}
+                />
                 </Panel>
 
                 <PanelResizeHandle className="h-2 bg-gray-100 hover:bg-blue-400 transition-colors relative group">

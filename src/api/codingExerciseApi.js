@@ -8,6 +8,12 @@ const codingExerciseApi = {
   getCodingExerciseDetail: (exerciseId) => {
     return axiosClient.get(`CodingExercise/coding-exercise-detail/${exerciseId}`);
   },
+  getCodeTemplate: (exerciseId, lang) => {
+    return axiosClient.get(`FunctionTemplate/${exerciseId}/${lang}`);
+  },
+  getCodingExerciseByClassId: (classId) => {
+    return axiosClient.get(`CodingExercise/coding-exercise-classid/${classId}`);
+  },
   submitCode: (data) => {
     return axiosClient.post(`/Submission/submissions`, {
       studentID: data.studentId,

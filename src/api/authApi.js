@@ -2,9 +2,9 @@ import axiosClient from "./axiosClient";
 
 const authApi = {
   // Đăng nhập
-  login: (studentId, password) => {
+  login: (studentCode, password) => {
     return axiosClient.post("/StudentAuth/login", {
-      studentID: studentId,
+      studentCode: studentCode,
       password: password,
     });
   },

@@ -8,9 +8,14 @@ const studentApi = {
     },
     
     //Thông tin học phần của học sinh
+
     getDataStudentFollowClass: () => {
-        return axiosClient.get("/student/me/classes");
-      },
+      return axiosClient.get("/student/me/classes");
+    },
+    getSubmissionByStudentIdAndClassId: (studentId, classId) => {
+      return axiosClient.get(`/Submission/students/${studentId}/classes/${classId}`);
+    },
   };
+
   
   export default studentApi;

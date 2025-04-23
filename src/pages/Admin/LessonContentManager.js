@@ -15,6 +15,7 @@ export default function LessonContentManager({ lessonId }) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
     fetchContents();
@@ -41,31 +42,33 @@ export default function LessonContentManager({ lessonId }) {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('lessonId', lessonId.toString());
     formData.append('title', file.name);
-    formData.append('contentType', file.type.includes('pdf') ? 'PDF' : 'Video');
+    formData.append('contentType', 'PDF'); // Luôn là PDF
     formData.append('category', selectedCategory);
 
     try {
-      setUploadProgress(0);
-      await adminApi.uploadContent(lessonId, formData, {
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress(percentCompleted);
-        }
-      });
-      alert('Tải lên thành công!');
-      setFile(null);
-      setShowUploadModal(false);
-      fetchContents();
+        setUploadProgress(0);
+        const response = await adminApi.uploadContent(lessonId, formData, {
+            onUploadProgress: (progressEvent) => {
+                const percentCompleted = Math.round(
+                    (progressEvent.loaded * 100) / progressEvent.total
+                );
+                setUploadProgress(percentCompleted);
+            }
+        });
+        
+        alert('Tải lên thành công!');
+        setFile(null);
+        setShowUploadModal(false);
+        fetchContents();
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Tải lên thất bại');
+        console.error('Upload error:', error);
+        alert(error.response?.data || 'Tải lên thất bại');
     } finally {
-      setUploadProgress(0);
+        setUploadProgress(0);
     }
-  };
+};
 
   const handleDelete = async (contentId) => {
     if (window.confirm('Bạn chắc chắn muốn xóa nội dung này?')) {
@@ -202,7 +205,7 @@ export default function LessonContentManager({ lessonId }) {
                     </div>
                     <div className="flex items-center space-x-2">
                       <a
-                        href={content.fileUrl}
+                        href={`${API_BASE_URL}/uploads/pdfs/${content.fileUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-3 py-1 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 text-sm"

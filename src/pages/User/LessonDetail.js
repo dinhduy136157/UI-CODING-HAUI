@@ -16,6 +16,7 @@ export default function LessonDetail() {
   const [completedActivities, setCompletedActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   // Fetch all lesson data
   useEffect(() => {
@@ -114,7 +115,7 @@ export default function LessonDetail() {
                         <div className="flex items-center gap-3 flex-1">
                           <FaFilePdf className="text-red-500 min-w-[20px]" />
                           <a
-                            href={activity.fileUrl}
+                            href={`${API_BASE_URL}/uploads/pdfs/${activity.fileUrl}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline truncate"
