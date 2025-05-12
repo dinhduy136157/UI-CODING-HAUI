@@ -23,4 +23,23 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Xử lý response
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Xóa token
+      localStorage.removeItem("token");
+      
+      // Xác định loại user dựa vào URL hiện tại
+      const isAdminRoute = window.location.pathname.startsWith('/admin');
+      const loginPath = isAdminRoute ? '/admin/login' : '/login';
+      
+      // Chuyển hướng về trang login tương ứng
+      window.location.href = loginPath;
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default axiosClient;

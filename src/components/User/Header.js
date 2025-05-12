@@ -1,10 +1,13 @@
-import { FaBell, FaUserCircle } from "react-icons/fa";
+import { FaBell, FaUserCircle, FaSignOutAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import studentApi from "../../api/studentApi";
+import authApi from "../../api/authApi";
+import { useNavigate } from "react-router-dom";
 
-
-export default function Header({notifications = [], markNotificationAsRead }) {
-  const [user, setUser] = useState(null); // State lưu thông tin user
+export default function Header({ notifications = [], markNotificationAsRead }) {
+  const [user, setUser] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -18,31 +21,39 @@ export default function Header({notifications = [], markNotificationAsRead }) {
 
     fetchUserData();
   }, []);
+
+  const handleLogout = () => {
+    authApi.logout();
+    navigate("/login"); // Điều hướng về trang login sau khi đăng xuất
+  };
+
   return (
     <header className="flex justify-between items-center bg-white p-4 shadow-md rounded-md">
       <h1 className="text-xl font-semibold">Trang chủ</h1>
       <div className="flex items-center gap-4">
         <div className="relative">
-          <FaBell className="cursor-pointer" />
-          {notifications.some((n) => !n.read) && (
-            <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">!</span>
-          )}
-          <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2">
-            {notifications.map((n) => (
-              <div
-                key={n.id}
-                className={`p-2 text-sm ${n.read ? "text-gray-400" : "text-gray-800"} cursor-pointer hover:bg-gray-100`}
-                onClick={() => markNotificationAsRead(n.id)}
-              >
-                {n.message}
-              </div>
-            ))}
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            <FaUserCircle className="text-2xl" />
+            <span className="font-semibold">
+              {user ? user.fullName : "Đang tải..."}
+            </span>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <FaUserCircle className="text-2xl" />
 
-          <span className="font-semibold">{user ? user.fullName : "Đang tải..."}</span>
+          {/* Dropdown menu */}
+          {showDropdown && (
+            <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md p-2 z-10">
+              <div
+                className="flex items-center gap-2 p-2 text-sm text-gray-800 hover:bg-gray-100 cursor-pointer"
+                onClick={handleLogout}
+              >
+                <FaSignOutAlt />
+                Đăng xuất
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

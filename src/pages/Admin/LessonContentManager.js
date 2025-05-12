@@ -28,47 +28,52 @@ export default function LessonContentManager({ lessonId }) {
       setContents(res.data);
     } catch (error) {
       console.error('Error fetching contents:', error);
+      alert('Lỗi khi tải danh sách nội dung: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
     }
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
   };
 
   const handleUpload = async () => {
     if (!file || !selectedCategory) return;
-
+  
     const formData = new FormData();
+    // Thêm file phải là thao tác đầu tiên
     formData.append('file', file);
+    // Các field khác phải được append sau file
     formData.append('lessonId', lessonId.toString());
     formData.append('title', file.name);
-    formData.append('contentType', 'PDF'); // Luôn là PDF
+    formData.append('contentType', 'PDF');
     formData.append('category', selectedCategory);
-
+  
     try {
-        setUploadProgress(0);
-        const response = await adminApi.uploadContent(lessonId, formData, {
-            onUploadProgress: (progressEvent) => {
-                const percentCompleted = Math.round(
-                    (progressEvent.loaded * 100) / progressEvent.total
-                );
-                setUploadProgress(percentCompleted);
-            }
-        });
-        
-        alert('Tải lên thành công!');
-        setFile(null);
-        setShowUploadModal(false);
-        fetchContents();
+      setUploadProgress(0);
+      const response = await adminApi.uploadContent(formData, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percentCompleted);
+        }
+      });
+      
+      alert('Tải lên thành công!');
+      setFile(null);
+      setShowUploadModal(false);
+      fetchContents();
     } catch (error) {
-        console.error('Upload error:', error);
-        alert(error.response?.data || 'Tải lên thất bại');
+      console.error('Upload error:', error);
+      alert('Tải lên thất bại: ' + (error.response?.data?.message || error.message));
     } finally {
-        setUploadProgress(0);
+      setUploadProgress(0);
     }
-};
+  };
 
   const handleDelete = async (contentId) => {
     if (window.confirm('Bạn chắc chắn muốn xóa nội dung này?')) {
@@ -77,6 +82,7 @@ export default function LessonContentManager({ lessonId }) {
         fetchContents();
       } catch (error) {
         console.error('Delete error:', error);
+        alert('Xóa thất bại: ' + (error.response?.data?.message || error.message));
       }
     }
   };
@@ -88,6 +94,7 @@ export default function LessonContentManager({ lessonId }) {
   const openUploadModal = (category) => {
     setSelectedCategory(category);
     setShowUploadModal(true);
+    setFile(null); // Reset file khi mở modal
   };
 
   return (

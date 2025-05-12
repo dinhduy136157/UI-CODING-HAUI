@@ -6,6 +6,8 @@ const adminApi = {
     getStudentByClass: (classId) => axiosClient.get(`/ClassStudent/getStudentByClassId?classId=${classId}`),
 
       // Exercises
+    getAllExercise: () => axiosClient.get(`/CodingExercise`),
+
     getExercisesByLesson: (lessonId) => axiosClient.get(`/CodingExercise/coding-exercise?lessonId=${lessonId}`),
     getExercise: (exerciseId) => axiosClient.get(`/CodingExercise/${exerciseId}`),
     createExercise: (data) => axiosClient.post('/CodingExercise', data),
@@ -19,6 +21,7 @@ const adminApi = {
     deleteTestCase: (id) => axiosClient.delete(`/TestCase/${id}`),
 
     // Submissions
+    getAllSubmissions: () => axiosClient.get(`/Submission`),
     getSubmissions: (exerciseId) => axiosClient.get(`/CodingExercise/${exerciseId}/submissions`),
     updateSubmission: (submissionId, data) => axiosClient.patch(`/submission/${submissionId}`, data),
 
@@ -32,13 +35,23 @@ const adminApi = {
 
     // Nội dung bài học
     getContents: (lessonId) => axiosClient.get(`/LessonContent/lesson-detail?lessonId=${lessonId}`),
+
+
+
     uploadContent: (formData) => axiosClient.post(`/LessonContent/upload`, formData, {
-      headers: {
-          'Content-Type': 'multipart/form-data'
+      transformRequest: (data, headers) => {
+        // Xóa header Content-Type để trình duyệt tự động thêm boundary
+        delete headers['Content-Type'];
+        return data;
       }
     }),
-    deleteContent: (contentId) => axiosClient.delete(`/LessonContent/${contentId}`),
 
+
+
+    deleteContent: (contentId) => axiosClient.delete(`/LessonContent/${contentId}`),
+    getDataTeacher: () => {
+      return axiosClient.get("/teacher/me");
+    },
 };
   
   export default adminApi;

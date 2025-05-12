@@ -14,24 +14,15 @@ import ScoreDetail from "../pages/User/ScoreDetail";
 const UserRoutes = () => {
   return (
     <Routes>
-      {/* <Route path="/Login" element={<Login />} />
+      <Route path="/Login" element={<Login />} />
       <Route element={<PrivateRoute />}>
         <Route path="/Home" element={<Home />} />
         <Route path="/Lesson" element={<Lesson />} />
         <Route path="/LessonDetail" element={<LessonDetail />} />
         <Route path="/CodingExercise" element={<CodingExercise />} />
+        <Route path="/ScoreOverview" element={<ScoreOverview />} />
+        <Route path="/ScoreDetail/:classId" element={<ScoreDetail />} />
       </Route>
-
-      <Route path="/*" element={<Navigate to="/login" />} /> */}
-      <Route path="/Login" element={<Login />} />
-      <Route path="/Home" element={<Home />} />
-      <Route path="/Lesson" element={<Lesson />} />
-      <Route path="/LessonDetail" element={<LessonDetail />} />
-      <Route path="/CodingExercise" element={<CodingExercise />} />
-      <Route path="/ScoreOverview" element={<ScoreOverview />} />
-      <Route path="/ScoreDetail/:classId" element={<ScoreDetail />} />
-
-
     </Routes>
   );
 };

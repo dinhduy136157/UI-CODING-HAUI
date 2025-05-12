@@ -76,7 +76,7 @@ export default function ClassList() {
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100"
                 >
                   <FiBook />
-                  <span>Bài học</span>
+                  <span>Nội dung học phần</span>
                 </Link>
               </div>
 

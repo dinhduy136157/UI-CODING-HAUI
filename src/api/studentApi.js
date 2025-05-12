@@ -15,6 +15,9 @@ const studentApi = {
     getSubmissionByStudentIdAndClassId: (studentId, classId) => {
       return axiosClient.get(`/Submission/students/${studentId}/classes/${classId}`);
     },
+    getSubmissionByStudentIdAndLessonId: (studentId, lessonId) => {
+      return axiosClient.get(`/Submission/students/${studentId}/lessons/${lessonId}`);
+    },
   };
 
   

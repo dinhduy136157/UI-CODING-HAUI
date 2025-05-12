@@ -8,10 +8,19 @@ const authApi = {
       password: password,
     });
   },
+  loginTeacher: (email, password) => {
+    return axiosClient.post("/TeacherAuth/login", {
+      email: email,
+      password: password,
+    });
+  },
 
   // Lấy thông tin user
   getDataStudent: () => {
     return axiosClient.get("/student/me");
+  },
+  getDataTeacher: () => {
+    return axiosClient.get("/teacher/me");
   },
   
   // Đăng xuất
