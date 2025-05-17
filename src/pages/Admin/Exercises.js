@@ -58,7 +58,6 @@ export default function Exercises() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Quản lý Bài tập</h1>
-          <p className="text-gray-600">Lesson ID: {lessonId}</p>
         </div>
         <Link 
           to={`/admin/lessons/${lessonId}/exercises/new`}

@@ -14,6 +14,7 @@ import ScoreDetail from "../pages/User/ScoreDetail";
 const UserRoutes = () => {
   return (
     <Routes>
+      <Route path="/" element={<Login />} />
       <Route path="/Login" element={<Login />} />
       <Route element={<PrivateRoute />}>
         <Route path="/Home" element={<Home />} />

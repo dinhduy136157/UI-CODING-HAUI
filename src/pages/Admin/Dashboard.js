@@ -145,7 +145,7 @@ export default function Dashboard() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center">
           <FaChalkboardTeacher className="mr-2 text-blue-600" />
-          Coding System Dashboard
+          Thống kê
         </h1>
       </div>
 
