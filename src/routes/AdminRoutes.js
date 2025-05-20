@@ -11,11 +11,9 @@ import LessonContentManager from '../pages/Admin/LessonContentManager';
 import LessonDetail from '../pages/Admin/LessonDetail';
 import Login from '../pages/Admin/auth/Login';
 import PrivateRoute from "./PrivateRouteAdmin";
-
-
-
-
-
+import CourseList from "../pages/Admin/CourseList";
+import CourseDetail from "../pages/Admin/CourseDetail";
+import ClassForm from "../pages/Admin/ClassForm";
 
 export default function AdminRoutes() {
   return (
@@ -24,9 +22,16 @@ export default function AdminRoutes() {
       <Route element={<PrivateRoute />}>
         <Route element={<AdminLayout />}>
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="exercises/:id/submissions" element={<Submissions />} />          
-          {/* Phần quản lý lớp học lớp học */}
+          <Route path="exercises/:id/submissions" element={<Submissions />} />     
+          {/* Phần quản lý học phần */}
+          <Route path="courses" element={<CourseList />} />
+          <Route path="courses/:courseId/lessons" element={<CourseDetail />} />
+
+
+          {/* Phần quản lý lớp học*/}
           <Route path="classes" element={<ClassList />} />
+          <Route path="classes/new" element={<ClassForm />} />
+
           <Route path="classes/:classId/lessons" element={<ClassDetail />} />
           <Route path="classes/:classId/students" element={<StudentsPage />} />
           <Route path="lessons/:lessonId" element={<LessonDetail />} />

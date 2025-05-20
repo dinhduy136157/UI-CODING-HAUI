@@ -4,6 +4,7 @@ const adminApi = {
   
     // Lấy thông tin user
     getStudentByClass: (classId) => axiosClient.get(`/ClassStudent/getStudentByClassId?classId=${classId}`),
+    addStudentToClass: (data) => axiosClient.post('/ClassStudent', data),
 
       // Exercises
     getAllExercise: () => axiosClient.get(`/CodingExercise`),
@@ -24,14 +25,20 @@ const adminApi = {
     getAllSubmissions: () => axiosClient.get(`/Submission`),
     getSubmissions: (exerciseId) => axiosClient.get(`/CodingExercise/${exerciseId}/submissions`),
     updateSubmission: (submissionId, data) => axiosClient.patch(`/submission/${submissionId}`, data),
+    // Subject
+    getAllSubject: () => axiosClient.get(`/Subject`),
+    getSubjectDetail: (id) => axiosClient.get(`/subject/${id}`),
 
-      // Lớp học
+
+    // Lớp học
     getClasses: () => axiosClient.get('/class/getClassByTeacherId?teacherId=1'),
     getClassDetail: (id) => axiosClient.get(`/class/${id}`),
-
+    createClass: (data) => axiosClient.post('/Class', data),
     // Bài học
     getLessons: (classId) => axiosClient.get(`/Lesson/class-lessons?classId=${classId}`),
     createLesson: (classId, data) => axiosClient.post(`/classes/${classId}/lessons`, data),
+    getLessonsBySubjectId: (subjectId) => axiosClient.get(`/Lesson/lessons-by-subjectid?subjectId=${subjectId}`),
+    cloneLesons: (classId, subjectId) => axiosClient.post(`/Lesson/clone-lessons?targetClassId=${classId}&subjectId=${subjectId}`),
 
     // Nội dung bài học
     getContents: (lessonId) => axiosClient.get(`/LessonContent/lesson-detail?lessonId=${lessonId}`),

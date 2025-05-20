@@ -6,6 +6,9 @@ const studentApi = {
     getDataStudent: () => {
       return axiosClient.get("/student/me");
     },
+    getAllStudent: () => {
+      return axiosClient.get("/Student");
+    },
     
     //Thông tin học phần của học sinh
 

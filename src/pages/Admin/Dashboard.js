@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaChalkboardTeacher, 
   FaCode, 
   FaUsers, 
   FaFileUpload, 
   FaCheckCircle,
   FaExclamationTriangle,
   FaClock,
-  FaBell,
   FaChartLine,
   FaLanguage,
-  FaTachometerAlt
+  FaTachometerAlt,
+  FaGraduationCap,
+  FaBook
 } from 'react-icons/fa';
 import adminApi from '../../api/adminApi';
 
@@ -27,8 +27,11 @@ export default function Dashboard() {
   });
   const [recentSubmissions, setRecentSubmissions] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [exerciseStats, setExerciseStats] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -42,12 +45,13 @@ export default function Dashboard() {
           adminApi.getAllSubmissions()
         ]);
 
-        // Tính toán thống kê
+        // Tính toán thống kê tổng quan
         const totalStudents = classesRes.data.reduce((sum, classItem) => {
           return sum + (classItem.studentCount || 0);
         }, 0);
 
         const submissions = submissionsRes.data;
+        const exercises = exercisesRes.data;
         
         // Tính điểm trung bình và tỷ lệ pass
         const totalScore = submissions.reduce((sum, sub) => sum + (sub.score || 0), 0);
@@ -75,7 +79,7 @@ export default function Dashboard() {
           }));
 
         setStats({
-          totalExercises: exercisesRes.data.length,
+          totalExercises: exercises.length,
           totalSubmissions: submissions.length,
           totalStudents: totalStudents,
           totalClasses: classesRes.data.length,
@@ -92,6 +96,13 @@ export default function Dashboard() {
         
         setRecentSubmissions(sortedSubmissions);
         setClasses(classesRes.data.slice(0, 3));
+        setExercises(exercises);
+
+        // Nếu có bài tập, chọn bài tập đầu tiên để hiển thị thống kê
+        if (exercises.length > 0) {
+          setSelectedExercise(exercises[0]);
+          calculateExerciseStats(exercises[0], submissions);
+        }
       } catch (err) {
         setError(err.message);
         console.error("Failed to fetch dashboard data:", err);
@@ -102,6 +113,37 @@ export default function Dashboard() {
 
     fetchDashboardData();
   }, []);
+
+  const calculateExerciseStats = (exercise, allSubmissions) => {
+    const exerciseSubmissions = allSubmissions.filter(sub => sub.exerciseID === exercise.exerciseID);
+    
+    const stats = {
+      totalSubmissions: exerciseSubmissions.length,
+      passRate: exerciseSubmissions.length > 0 
+        ? ((exerciseSubmissions.filter(sub => sub.status === "Accepted").length / exerciseSubmissions.length) * 100).toFixed(1)
+        : 0,
+      averageScore: exerciseSubmissions.length > 0
+        ? (exerciseSubmissions.reduce((sum, sub) => sum + (sub.score || 0), 0) / exerciseSubmissions.length).toFixed(1)
+        : 0,
+      averageExecutionTime: exerciseSubmissions.length > 0
+        ? (exerciseSubmissions.reduce((sum, sub) => sum + (sub.executionTime || 0), 0) / exerciseSubmissions.length).toFixed(2)
+        : 0,
+      languageDistribution: exerciseSubmissions.reduce((acc, sub) => {
+        acc[sub.programmingLanguage] = (acc[sub.programmingLanguage] || 0) + 1;
+        return acc;
+      }, {}),
+      recentSubmissions: exerciseSubmissions
+        .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+        .slice(0, 5)
+    };
+
+    setExerciseStats(stats);
+  };
+
+  const handleExerciseChange = (exercise) => {
+    setSelectedExercise(exercise);
+    calculateExerciseStats(exercise, recentSubmissions);
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -140,72 +182,135 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-          <FaChalkboardTeacher className="mr-2 text-blue-600" />
-          Thống kê
+          <FaGraduationCap className="mr-2 text-blue-600" />
+          Bảng điều khiển
         </h1>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          icon={<FaCode className="text-blue-500" />}
+          icon={<FaBook className="text-blue-500" />}
           title="Tổng bài tập"
           value={stats.totalExercises}
-          trend=""
           color="blue"
         />
         <StatCard 
-          icon={<FaFileUpload className="text-green-500" />}
-          title="Bài nộp"
-          value={stats.totalSubmissions}
-          trend=""
+          icon={<FaUsers className="text-green-500" />}
+          title="Tổng học sinh"
+          value={stats.totalStudents}
           color="green"
         />
         <StatCard 
           icon={<FaCheckCircle className="text-yellow-500" />}
-          title="Tỷ lệ pass"
+          title="Tỷ lệ pass trung bình"
           value={`${stats.passRate}%`}
-          trend=""
           color="yellow"
         />
         <StatCard 
           icon={<FaTachometerAlt className="text-purple-500" />}
           title="Thời gian thực thi TB"
           value={`${stats.averageExecutionTime}ms`}
-          trend=""
           color="purple"
         />
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Submissions */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-lg font-semibold flex items-center mb-6">
-            <FaFileUpload className="mr-2 text-blue-500" />
-            Bài nộp gần đây
-          </h2>
-          
-          <div className="space-y-4">
-            {recentSubmissions.length > 0 ? (
-              recentSubmissions.map((submission) => (
+      {/* Exercise Statistics */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-lg font-semibold mb-4">Thống kê theo bài tập</h2>
+        
+        {/* Exercise Selector */}
+        <div className="mb-6">
+          <select 
+            className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            value={selectedExercise?.exerciseID}
+            onChange={(e) => {
+              const exercise = exercises.find(ex => ex.exerciseID === parseInt(e.target.value));
+              handleExerciseChange(exercise);
+            }}
+          >
+            {exercises.map(exercise => (
+              <option key={exercise.exerciseID} value={exercise.exerciseID}>
+                {exercise.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {exerciseStats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard 
+              icon={<FaFileUpload className="text-blue-500" />}
+              title="Số lần nộp"
+              value={exerciseStats.totalSubmissions}
+              color="blue"
+            />
+            <StatCard 
+              icon={<FaCheckCircle className="text-green-500" />}
+              title="Tỷ lệ pass"
+              value={`${exerciseStats.passRate}%`}
+              color="green"
+            />
+            <StatCard 
+              icon={<FaChartLine className="text-yellow-500" />}
+              title="Điểm trung bình"
+              value={exerciseStats.averageScore}
+              color="yellow"
+            />
+            <StatCard 
+              icon={<FaClock className="text-purple-500" />}
+              title="Thời gian thực thi TB"
+              value={`${exerciseStats.averageExecutionTime}ms`}
+              color="purple"
+            />
+          </div>
+        )}
+
+        {/* Language Distribution */}
+        {exerciseStats && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">Phân bố ngôn ngữ lập trình</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(exerciseStats.languageDistribution).map(([lang, count]) => (
+                <div key={lang} className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">{lang}</span>
+                    <span className="text-sm text-gray-500">{count} bài nộp</span>
+                  </div>
+                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full" 
+                      style={{ width: `${(count / exerciseStats.totalSubmissions) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recent Submissions for Selected Exercise */}
+        {exerciseStats && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">Bài nộp gần đây</h3>
+            <div className="space-y-4">
+              {exerciseStats.recentSubmissions.map((submission) => (
                 <div 
                   key={submission.submissionID} 
                   className="flex items-center p-4 hover:bg-gray-50 rounded-lg transition-colors border border-gray-100"
                 >
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium">Bài tập #{submission.exerciseID}</h3>
+                      <h3 className="font-medium">Học sinh #{submission.studentID}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(submission.status)}`}>
                         {submission.status}
                       </span>
                     </div>
                     <div className="mt-2 text-sm text-gray-500">
-                      <p>Học sinh #{submission.studentID}</p>
                       <p>Ngôn ngữ: {submission.programmingLanguage}</p>
                       <p>Thời gian: {new Date(submission.submittedAt).toLocaleString()}</p>
                       <p>Test cases: {submission.testCasesPassed}/{submission.totalTestCases}</p>
@@ -215,66 +320,40 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                Chưa có bài nộp nào
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Language Stats and Classes */}
-        <div className="space-y-6">
-          {/* Language Statistics */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold flex items-center mb-6">
-              <FaLanguage className="mr-2 text-blue-500" />
-              Ngôn ngữ phổ biến
-            </h2>
-            <div className="space-y-4">
-              {stats.popularLanguages.map((lang, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{lang.language}</span>
-                  <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2">{lang.count} bài</span>
-                    <span className="text-xs text-gray-400">({lang.percentage}%)</span>
-                  </div>
-                </div>
               ))}
             </div>
           </div>
+        )}
+      </div>
 
-          {/* Classes */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-semibold flex items-center mb-6">
-              <FaChartLine className="mr-2 text-blue-500" />
-              Lớp học của bạn
-            </h2>
-            
-            <div className="space-y-4">
-              {classes.length > 0 ? (
-                classes.map((classItem) => (
-                  <div 
-                    key={classItem.classID} 
-                    className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <h3 className="font-medium">{classItem.className}</h3>
-                    <div className="flex justify-between mt-2 text-sm text-gray-600">
-                      <span>{classItem.studentCount || 0} học sinh</span>
-                      <button className="text-blue-600 hover:text-blue-800 text-sm">
-                        Xem chi tiết
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Không có lớp học nào
+      {/* Recent Submissions Across All Exercises */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-lg font-semibold mb-4">Bài nộp gần đây (Tất cả bài tập)</h2>
+        <div className="space-y-4">
+          {recentSubmissions.map((submission) => (
+            <div 
+              key={submission.submissionID} 
+              className="flex items-center p-4 hover:bg-gray-50 rounded-lg transition-colors border border-gray-100"
+            >
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Bài tập #{submission.exerciseID}</h3>
+                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(submission.status)}`}>
+                    {submission.status}
+                  </span>
                 </div>
-              )}
+                <div className="mt-2 text-sm text-gray-500">
+                  <p>Học sinh #{submission.studentID}</p>
+                  <p>Ngôn ngữ: {submission.programmingLanguage}</p>
+                  <p>Thời gian: {new Date(submission.submittedAt).toLocaleString()}</p>
+                  <p>Test cases: {submission.testCasesPassed}/{submission.totalTestCases}</p>
+                  {submission.executionTime > 0 && (
+                    <p>Thời gian thực thi: {submission.executionTime}ms</p>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
@@ -282,7 +361,7 @@ export default function Dashboard() {
 }
 
 // Stat Card Component
-function StatCard({ icon, title, value, trend, color }) {
+function StatCard({ icon, title, value, color }) {
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-800',
     green: 'bg-green-50 text-green-800',
@@ -301,7 +380,6 @@ function StatCard({ icon, title, value, trend, color }) {
           {icon}
         </div>
       </div>
-      {trend && <p className="text-xs mt-3 opacity-80">{trend}</p>}
     </div>
   );
 }
