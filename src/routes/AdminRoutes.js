@@ -14,7 +14,7 @@ import PrivateRoute from "./PrivateRouteAdmin";
 import CourseList from "../pages/Admin/CourseList";
 import CourseDetail from "../pages/Admin/CourseDetail";
 import ClassForm from "../pages/Admin/ClassForm";
-
+import SubmissionDetail from '../pages/Admin/SubmissionDetail';
 export default function AdminRoutes() {
   return (
     <Routes>
@@ -42,6 +42,8 @@ export default function AdminRoutes() {
           <Route path="lessons/:lessonId/exercises/:id/edit" element={<ExerciseForm />} />
           {/* Phần submission */}
           <Route path="lessons/:lessonId/exercises/:id/submissions" element={<Submissions />} />
+          <Route path="submissions/:submissionId" element={<SubmissionDetail />} />
+
         </Route>
       </Route>
     </Routes>

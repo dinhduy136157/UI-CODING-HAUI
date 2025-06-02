@@ -23,8 +23,10 @@ const adminApi = {
 
     // Submissions
     getAllSubmissions: () => axiosClient.get(`/Submission`),
+    getSubmissionById: (submissionId) => axiosClient.get(`/Submission/${submissionId}`),
     getSubmissions: (exerciseId) => axiosClient.get(`/CodingExercise/${exerciseId}/submissions`),
     updateSubmission: (submissionId, data) => axiosClient.patch(`/submission/${submissionId}`, data),
+    getSubmissionByExercise: (exerciseId) => axiosClient.get(`/Submission/exercises/${exerciseId}`),
     // Subject
     getAllSubject: () => axiosClient.get(`/Subject`),
     getSubjectDetail: (id) => axiosClient.get(`/subject/${id}`),
