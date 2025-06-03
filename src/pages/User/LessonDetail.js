@@ -21,6 +21,8 @@ export default function LessonDetail() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedTab, setSelectedTab] = useState("courses");
+
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
@@ -130,7 +132,7 @@ export default function LessonDetail() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-gray-50">
-        <Sidebar />
+      <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
         <main className="flex-1 p-6">
           <Header />
           <div className="flex justify-center items-center h-64">

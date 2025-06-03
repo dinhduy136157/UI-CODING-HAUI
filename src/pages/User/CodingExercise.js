@@ -70,6 +70,7 @@ export default function CodingExercise() {
   const [user, setUser] = useState(null);
   const [submitResult, setSubmitResult] = useState(null);
   const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("courses");
 
   // Lấy thông tin user
   useEffect(() => {
@@ -272,7 +273,7 @@ export default function CodingExercise() {
         pauseOnHover
       />
 
-      <Sidebar />
+      <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       <main className="flex-1 flex flex-col overflow-hidden">
         <Header />
 
@@ -471,6 +472,7 @@ export default function CodingExercise() {
                 >
                   <option value="python">Python</option>
                   <option value="java">Java</option>
+                  <option value="php">PHP</option>
                 </select>
 
                   <div className="flex items-center space-x-2 text-sm text-gray-600">

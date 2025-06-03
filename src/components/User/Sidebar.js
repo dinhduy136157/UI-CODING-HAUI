@@ -32,7 +32,7 @@ export default function Sidebar({ selectedTab, setSelectedTab }) {
               className={`p-2 flex items-center gap-2 cursor-pointer rounded-md transition-colors ${
                 selectedTab === tab.id ? "bg-gray-200" : "hover:bg-gray-100"
               }`}
-              onClick={() => setSelectedTab(tab.id)}
+              onClick={() => setSelectedTab && setSelectedTab(tab.id)}
             >
               <Link 
                 to={tab.path} 
