@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Sidebar from "../../components/User/Sidebar";
 import Header from "../../components/User/Header";
 import studentApi from "../../api/studentApi";
+import codingExerciseApi from "../../api/codingExerciseApi";
 
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
   ]);
   const [user, setUser] = useState(null); // Thêm state để lưu thông tin user
   const [classes, setClasses] = useState([]); // Thêm state lưu danh sách lớp học
+  const [classDetails, setClassDetails] = useState({});
   const navigate = useNavigate(); // Sử dụng useNavigate để điều hướng
 
   // Gọi API lấy thông tin user khi component mount
@@ -34,14 +36,48 @@ export default function Home() {
     const fetchClasses = async () => {
       try {
         const response = await studentApi.getDataStudentFollowClass();
-        setClasses(response.data); 
+        setClasses(response.data);
+        
+        // Fetch exercises and submissions for each class
+        const details = {};
+        for (const classItem of response.data) {
+          try {
+            const [exercisesRes, submissionsRes] = await Promise.all([
+              codingExerciseApi.getCodingExerciseByClassId(classItem.classID),
+              studentApi.getSubmissionByStudentIdAndClassId(user.studentID, classItem.classID)
+            ]);
+            
+            const totalExercises = exercisesRes.data.length;
+            const completedExercises = new Set(
+              submissionsRes.data
+                .filter(sub => sub.status === "Accepted")
+                .map(sub => sub.exerciseID)
+            ).size;
+
+            details[classItem.classID] = {
+              totalExercises,
+              completedExercises
+            };
+          } catch (error) {
+            console.error(`Error fetching details for class ${classItem.classID}:`, error);
+            details[classItem.classID] = {
+              totalExercises: 0,
+              completedExercises: 0
+            };
+          }
+        }
+        setClassDetails(details);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách lớp học:", error);
       }
     };
 
-    fetchClasses();
-  }, []);
+    // Chỉ fetch classes khi đã có thông tin user
+    if (user) {
+      fetchClasses();
+    }
+  }, [user]); // Thêm user vào dependency array
+
   const markNotificationAsRead = (id) => {
     setNotifications(notifications.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
@@ -57,7 +93,6 @@ export default function Home() {
         <Header notifications={notifications} markNotificationAsRead={markNotificationAsRead} />
 
         {/* Course Overview */}
-        {/* Course Overview */}
         <section className="mt-6">
           <h2 className="text-lg font-semibold mb-4">Tổng quan các lớp học phần</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -65,25 +100,35 @@ export default function Home() {
               <motion.div
                 key={course.classID}
                 whileHover={{ scale: 1.05 }}
-                className="p-4 rounded-md shadow text-white relative overflow-hidden"
+                className="p-6 rounded-xl shadow-lg text-white relative overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl"
                 style={{
-                  backgroundImage: `url(${[
-                    "https://via.placeholder.com/300x200/33FF57/FFFFFF?text=Course",
-                    "https://via.placeholder.com/300x200/3357FF/FFFFFF?text=Course",
-                  ][index % 4]
-                    })`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
+                  background: [
+                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    'linear-gradient(135deg, #6B73FF 0%, #000DFF 100%)',
+                    'linear-gradient(135deg, #FF6B6B 0%, #FF0000 100%)',
+                    'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    'linear-gradient(135deg, #6B73FF 0%, #000DFF 100%)'
+                  ][index % 8]
                 }}
                 onClick={() => navigate(`/Lesson?classId=${course.classID}`)}
-                
               >
-                <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                <div className="absolute inset-0 bg-black bg-opacity-10"></div>
                 <div className="relative z-10">
-                  <h3 className="text-sm font-semibold">{course.subjectName}</h3>
-                  <p className="text-xs">Mã lớp: {course.className}</p>
-                  <p className="text-xs">Hoàn thành {index % 2 === 0 ? "0%" : "100%"}</p>
-
+                  <h3 className="text-lg font-bold mb-2">{course.subjectName}</h3>
+                  <p className="text-sm opacity-90">Mã lớp: {course.className}</p>
+                  <div className="mt-4 pt-4 border-t border-white border-opacity-20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm opacity-90">Số bài tập</span>
+                      <span className="text-sm font-semibold">{classDetails[course.classID]?.totalExercises || 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-sm opacity-90">Đã hoàn thành</span>
+                      <span className="text-sm font-semibold">{classDetails[course.classID]?.completedExercises || 0}</span>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             ))}
