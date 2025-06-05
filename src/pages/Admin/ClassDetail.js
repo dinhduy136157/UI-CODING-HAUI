@@ -8,11 +8,43 @@ export default function ClassDetail() {
   const { classId } = useParams();
   const [classInfo, setClassInfo] = useState(null);
   const [lessons, setLessons] = useState([]);
+  const [lessonContents, setLessonContents] = useState({});
 
   useEffect(() => {
-    adminApi.getClassDetail(classId).then(res => setClassInfo(res.data));
-    adminApi.getLessons(classId).then(res => setLessons(res.data));
+    const fetchData = async () => {
+      try {
+        // 1. Fetch class info
+        const classResponse = await adminApi.getClassDetail(classId);
+        setClassInfo(classResponse.data);
+
+        // 2. Fetch lessons
+        const lessonsResponse = await adminApi.getLessons(classId);
+        setLessons(lessonsResponse.data);
+
+        // 3. Fetch contents for each lesson
+        const contents = {};
+        for (const lesson of lessonsResponse.data) {
+          const contentResponse = await adminApi.getContents(lesson.lessonID);
+          contents[lesson.lessonID] = contentResponse.data;
+        }
+        setLessonContents(contents);
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu:", error);
+      }
+    };
+
+    fetchData();
   }, [classId]);
+
+  // Hàm đếm số lượng tài liệu dựa trên lessonContents
+  const countDocuments = (lessonId) => {
+    if (!lessonContents[lessonId]) return 0;
+    
+    return lessonContents[lessonId].reduce((count, content) => {
+      const isDocument = content.contentType === "PDF" || content.contentType === "Slide";
+      return count + (isDocument ? 1 : 0);
+    }, 0);
+  };
 
   return (
     <div className="p-6">
@@ -42,7 +74,7 @@ export default function ClassDetail() {
                   <div className="flex items-center mt-2 text-sm text-gray-500">
                     <span className="flex items-center">
                       <FaFileAlt className="mr-1" />
-                      {lesson.contents?.length || 0} tài liệu
+                      {countDocuments(lesson.lessonID)} tài liệu
                     </span>
                   </div>
                 </div>

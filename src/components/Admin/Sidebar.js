@@ -4,7 +4,6 @@ import { NavLink } from "react-router-dom";
 
 export default function AdminSidebar() {
   const adminMenuItems = [
-    { id: "dashboard", icon: <FaTachometerAlt />, label: "Bảng điều khiển", path: "/admin/dashboard" },
     { id: "courses", icon: <FaClipboardCheck />, label: "Quản lý học phần", path: "/admin/courses" }, // <-- Thêm mục này
 
     { id: "classes", icon: <FaCode />, label: "Quản lý lớp học phần", path: "/admin/classes" },

@@ -79,13 +79,6 @@ export default function ClassList() {
                   <span>Nội dung học phần</span>
                 </Link>
               </div>
-
-              <Link
-                to={`/admin/classes/${c.classID}`}
-                className="mt-4 w-full flex items-center justify-center gap-1 text-blue-500 hover:text-blue-700 text-sm font-medium"
-              >
-                Xem chi tiết <FiArrowRight />
-              </Link>
             </div>
           </div>
         ))}

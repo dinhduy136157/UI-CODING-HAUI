@@ -1,6 +1,5 @@
 import { Route, Routes } from 'react-router-dom';
 import AdminLayout from '../layouts/Admin/AdminLayout';
-import DashboardPage from '../pages/Admin/Dashboard';
 import StudentsPage from '../pages/Admin/Students';
 import Submissions from '../pages/Admin/Submission';
 import ExerciseForm from '../pages/Admin/ExerciseForm';
@@ -21,7 +20,6 @@ export default function AdminRoutes() {
       <Route path="login" element={<Login />} />
       <Route element={<PrivateRoute />}>
         <Route element={<AdminLayout />}>
-          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="exercises/:id/submissions" element={<Submissions />} />     
           {/* Phần quản lý học phần */}
           <Route path="courses" element={<CourseList />} />

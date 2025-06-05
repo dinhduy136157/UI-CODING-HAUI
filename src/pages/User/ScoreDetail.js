@@ -51,12 +51,6 @@ export default function CodingExerciseScores() {
     return exerciseSubmissions[0];
   };
 
-  // Chỉ lấy các bài tập đã được nộp ít nhất 1 lần
-  const getSubmittedExercises = () => {
-    const submittedExerciseIds = [...new Set(submissions.map(s => s.exerciseID))];
-    return exercises.filter(ex => submittedExerciseIds.includes(ex.exerciseID));
-  };
-
   const getSubmissionStatus = (submission) => {
     if (!submission) return { text: "Chưa nộp", color: "text-gray-500", icon: <FaTimesCircle /> };
     
@@ -81,11 +75,17 @@ export default function CodingExerciseScores() {
     </div>
   );
 
-  const submittedExercises = getSubmittedExercises();
+  // Thay thế submittedExercises bằng exercises
   const totalExercises = exercises.length;
   const completedExercises = new Set(submissions.filter(s => s.status === "Accepted").map(s => s.exerciseID)).size;
-  const averageScore = submissions.length > 0 
-    ? (submissions.reduce((sum, s) => sum + (s.score || 0), 0) / submissions.length).toFixed(1)
+  
+  // Calculate average score using only latest submissions
+  const latestSubmissions = exercises.map(exercise => 
+    getLatestSubmissionForExercise(exercise.exerciseID)
+  ).filter(submission => submission && submission.score !== null);
+  
+  const averageScore = latestSubmissions.length > 0 
+    ? (latestSubmissions.reduce((sum, s) => sum + s.score, 0) / latestSubmissions.length).toFixed(1)
     : 0;
 
   return (
@@ -123,7 +123,7 @@ export default function CodingExerciseScores() {
               <div className="col-span-2">Hành động</div>
             </div>
 
-            {submittedExercises.map((exercise, index) => {
+            {exercises.map((exercise, index) => {
               const submission = getLatestSubmissionForExercise(exercise.exerciseID);
               const status = getSubmissionStatus(submission);
 

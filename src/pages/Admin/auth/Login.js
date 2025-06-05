@@ -15,7 +15,7 @@ export default function LoginPage() {
     try {
       const response = await authApi.loginTeacher(email, password);
       localStorage.setItem("token", response.data.token);
-      navigate("/admin/dashboard");
+      navigate("/admin/classes");
     } catch (err) {
       setError("Đăng nhập thất bại! Vui lòng kiểm tra lại email và mật khẩu");
     }

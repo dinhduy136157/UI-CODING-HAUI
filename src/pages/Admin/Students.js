@@ -1,22 +1,26 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import adminApi from '../../api/adminApi';
 import codingExerciseApi from '../../api/codingExerciseApi';
 import studentApi from '../../api/studentApi';
 import { 
   FiUser, FiMail, FiPhone, FiCalendar, 
   FiAward, FiCreditCard, FiChevronDown, FiChevronUp,
-  FiCode, FiClock, FiCheckCircle, FiXCircle
+  FiCode, FiClock, FiCheckCircle, FiXCircle,
+  FiSearch
 } from 'react-icons/fi';
 
 export default function Students() {
   const { classId } = useParams();
   const [students, setStudents] = useState([]);
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedStudent, setExpandedStudent] = useState(null);
   const [studentSubmissions, setStudentSubmissions] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +62,7 @@ export default function Students() {
 
         setExercises(exercisesResponse.data);
         setStudents(studentsWithProgress);
+        setFilteredStudents(studentsWithProgress);
         setLoading(false);
 
         // Fetch và lưu submissions mới nhất để hiển thị chi tiết
@@ -71,6 +76,27 @@ export default function Students() {
 
     fetchData();
   }, [classId]);
+
+  // Thêm useEffect để lọc học sinh khi searchQuery thay đổi
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredStudents(students);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    const filtered = students.filter(student => {
+      const fullName = (student.fullName || `${student.lastName} ${student.firstName}`).toLowerCase();
+      const studentCode = (student.studentCode || '').toLowerCase();
+      const phone = (student.phone || '').toLowerCase();
+
+      return fullName.includes(query) || 
+             studentCode.includes(query) || 
+             phone.includes(query);
+    });
+
+    setFilteredStudents(filtered);
+  }, [searchQuery, students]);
 
   const fetchLatestSubmissions = async (students) => {
     const submissionsMap = {};
@@ -142,13 +168,27 @@ export default function Students() {
     <div className="bg-white rounded-xl shadow-md p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Danh sách học sinh</h1>
-        <div className="text-gray-500">
-          Lớp: <span className="font-medium">{classId}</span>
-          {exercises.length > 0 && (
-            <span className="ml-4">
-              Tổng bài tập: <span className="font-medium">{exercises.length}</span>
-            </span>
-          )}
+        <div className="flex items-center space-x-4">
+          <div className="relative w-64">
+            <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+              <FiSearch className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              placeholder="Tìm kiếm học sinh..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="text-gray-500">
+            Lớp: <span className="font-medium">{classId}</span>
+            {exercises.length > 0 && (
+              <span className="ml-4">
+                Tổng bài tập: <span className="font-medium">{exercises.length}</span>
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -182,7 +222,7 @@ export default function Students() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {students.map((student) => (
+              {filteredStudents.map((student) => (
                 <>
                   <tr key={student.studentID} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500">
@@ -259,7 +299,14 @@ export default function Students() {
                                       </div>
                                     </div>
                                     <div className="flex space-x-2">
-                                      <button className="text-sm text-blue-600 hover:text-blue-800">
+                                      <button 
+                                        onClick={() => navigate(`/admin/submissions/${sub.submissionID}`)}
+                                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                                      >
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
                                         Xem chi tiết
                                       </button>
                                     </div>
